@@ -1,151 +1,152 @@
-# Project Eclipse Chariott
+# Dự án Eclipse Chariott
 
-- [CI Status](#ci-status)
-- [What is Chariott?](#what-is-chariott)
-- [How to develop with Chariott](#how-to-develop-with-chariott)
-  - [Terminology](#terminology)
-  - [Concept of Intents](#concept-of-intents)
-- [Requirements](#requirements)
-- [Getting started](#getting-started)
-  - [Dev Container](#dev-container)
-  - [Build all binaries and run tests](#build-all-binaries-and-run-tests)
-  - [Using Podman instead of Docker](#using-podman-instead-of-docker)
-- [How to run the examples and interact with Chariott](#how-to-run-the-examples-and-interact-with-chariott)
-- [How to run the dog mode demo](#how-to-run-the-dog-mode-demo)
-- [Trademarks](#trademarks)
+- [Trạng thái CI](#ci-status)
+- [Chariott là gì?](#what-is-chariott)
+- [Cách phát triển với Chariott](#how-to-develop-with-chariott)
+   - [Thuật ngữ](#thuật ngữ)
+   - [Khái niệm về ý định](#khái niệm về ý định)
+- [Yêu cầu](#requirements)
+- [Bắt đầu](#bắt đầu)
+   - [Dev Container](#dev-container)
+   - [Tạo tất cả các tệp nhị phân và chạy thử nghiệm](#build-all-binaries-and-run-tests)
+   - [Sử dụng Podman thay vì Docker](#using-podman-instead-of-docker)
+- [Cách chạy ví dụ và tương tác với Chariott](#how-to-run-the-examples-and-interact-with-chariott)
+- [Cách chạy demo chế độ chó](#how-to-run-the-dog-mode-demo)
+- [Nhãn hiệu](#trademarks)
 
-## CI Status
+## Tình trạng CI
 
-<!-- TODO: Add back after we move to new Repo -->
+<!-- VIỆC CẦN LÀM: Thêm lại sau khi chúng tôi chuyển sang Repo mới -->
 
-- Rust CI
+- Rỉ CI
 - E2E CI
-- Security Audit
+- Kiểm toán an ninh
 
-## What is Chariott?
+## Chariott là gì?
 
-Chariott is a [gRPC](https://grpc.io) service that provides a common interface for interacting with applications.
-Applications communicate between each other through Chariott. Chariott provides the necessary services to enable
-application lifecycle management and communication between applications. This is done by having applications register
-an _intent_ which Chariott will then _fulfil_ by brokering the communication with the appropriate application to
-fulfil that intent. Applications which fulfil these intents are known as _providers_. More information on Chariott design with diagrams can be found [here](./docs/design/README.md).
+Chariott là dịch vụ [gRPC](https://grpc.io) cung cấp giao diện chung để tương tác với các ứng dụng.
+Các ứng dụng giao tiếp với nhau thông qua Chariott. Chariott cung cấp các dịch vụ cần thiết để kích hoạt
+quản lý vòng đời ứng dụng và giao tiếp giữa các ứng dụng. Điều này được thực hiện bằng cách đăng ký ứng dụng
+một _intent_ mà Chariott sau đó sẽ _hoàn thành_ bằng cách trung gian giao tiếp với ứng dụng thích hợp để
+thực hiện ý định đó. Các ứng dụng đáp ứng những ý định này được gọi là _providers_. Bạn có thể tìm thêm thông tin về thiết kế Chariott bằng sơ đồ [tại đây](./docs/design/README.md).
 
-## How to develop with Chariott
+## Cách phát triển với Chariott
 
-Chariott provides gRPC interfaces to interact from a client application. The
-client application can be written in any language that supports gRPC. The
-examples in this repository are written in Rust, but the same concepts apply to
-any language.
+Chariott cung cấp giao diện gRPC để tương tác từ ứng dụng khách. Các
+ứng dụng khách có thể được viết bằng bất kỳ ngôn ngữ nào hỗ trợ gRPC. Các
+các ví dụ trong kho lưu trữ này được viết bằng Rust, nhưng các khái niệm tương tự áp dụng cho
+bất kỳ ngôn ngữ nào.
 
-### Terminology
+### Thuật ngữ
 
-| Term | Description |
+| Kỳ hạn | Mô tả |
 | --- | --- |
-| Application | As application we describe a client that is interacting with Chariott to lookup providers and interact with them through Chariott using intents |
-| Provider | A provider is also an application and in addition registers namespaces with intents that it supports to the Chariott endpoints that other applications can use through Chariott |
+| Ứng dụng | Là ứng dụng, chúng tôi mô tả một khách hàng đang tương tác với Chariott để tra cứu các nhà cung cấp và tương tác với họ thông qua Chariott bằng cách sử dụng ý định |
+| Nhà cung cấp | Nhà cung cấp cũng là một ứng dụng và ngoài ra, còn đăng ký các không gian tên với các ý định mà nó hỗ trợ cho các điểm cuối Chariott mà các ứng dụng khác có thể sử dụng thông qua Chariott |
 
-### Concept of Intents
+### Khái niệm về ý định
 
-Intents are the main way to interact with Chariott. Once a provider registers
-an intent with Chariott, other applications can use that intent to interact with
-the provider. The intent is a gRPC method that is defined in the provider's
-protobuf definition. That definition is only used by Chariott itself.
+Ý định là cách chính để tương tác với Chariott. Khi một nhà cung cấp đăng ký
+một ý định với Chariott, các ứng dụng khác có thể sử dụng ý định đó để tương tác với
+nhà cung cấp. Mục đích là một phương thức gRPC được xác định trong tệp của nhà cung cấp
+định nghĩa protobuf Định nghĩa đó chỉ được sử dụng bởi chính Chariott.
 
-Chariott also provides a gRPC interface for applications to interact with
-providers and delegates the calls based on the intent to the provider transparently.
-Therefore, clients don't need to know the location and details of the provider as long as
-their intent is fulfilled.
+Chariott cũng cung cấp giao diện gRPC để các ứng dụng tương tác với
+các nhà cung cấp và ủy quyền các cuộc gọi dựa trên ý định cho nhà cung cấp một cách minh bạch.
+Do đó, khách hàng không cần biết vị trí và thông tin chi tiết của nhà cung cấp miễn là
+ý định của họ được thực hiện.
 
-Here is a list of the current supported intents:
+Dưới đây là danh sách các ý định được hỗ trợ hiện tại:
 
-| Intent | Description |
+| ý định | Mô tả |
 | --- | --- |
-| Discover | Retrieve native interfaces of providers. This comes in handy if you need specific interaction with a provider that you know is available in the system and you don't want to use Chariott to interact with it. This is also used for retrieving the streaming endpoints of a provider. |
-| Inspect | Support inspection of functionality, properties and events using a simple query syntax. |
-| Invoke | Invoke a method on a provider. |
-| Subscribe | Subscribe to events of a provider. Note that this does not open the streaming channel, this is done through the native streaming endpoint of the provider. |
-| Read | Read a property of a provider. |
-| Write | Write a property to a provider. |
+| Khám phá | Truy xuất giao diện gốc của nhà cung cấp. Điều này rất hữu ích nếu bạn cần tương tác cụ thể với nhà cung cấp mà bạn biết là có sẵn trong hệ thống và bạn không muốn sử dụng Chariott để tương tác với nhà cung cấp đó. Điều này cũng được sử dụng để truy xuất các điểm cuối phát trực tuyến của nhà cung cấp. |
+| Kiểm tra | Hỗ trợ kiểm tra chức năng, thuộc tính và sự kiện bằng cú pháp truy vấn đơn giản. |
+| Gọi | Gọi một phương thức trên một nhà cung cấp. |
+| Theo dõi | Theo dõi các sự kiện của một nhà cung cấp. Lưu ý rằng điều này không mở kênh phát trực tuyến, điều này được thực hiện thông qua điểm cuối phát trực tuyến gốc của nhà cung cấp. |
+| Đọc | Đọc một tài sản của một nhà cung cấp. |
+| Viết | Viết một tài sản cho một nhà cung cấp. |
 
-More information can be found in the protobuf definitions in `./proto`.
+Bạn có thể tìm thêm thông tin trong các định nghĩa protobuf trong `./proto`.
 
-There is a separate document that describes the example applications and
-scenarios that are supported by Chariott. It can be found
-[here](./examples/applications/README.md).
+Có một tài liệu riêng mô tả các ứng dụng ví dụ và
+kịch bản được hỗ trợ bởi Chariott. Nó có thể được tìm thấy
+[tại đây](./examples/applications/README.md).
 
-## Requirements
+## Yêu cầu
 
-The current source is developed and tested under WSL2/Linux running Ubuntu 20.04
-on AMD64 architecture. It is not tested against any other configurations. You
-might experience missing support for other platforms, but please feel free to
-contribute to close the gaps.
+Nguồn hiện tại được phát triển và thử nghiệm trong WSL2/Linux chạy Ubuntu 20.04
+trên kiến trúc AMD64. Nó không được thử nghiệm với bất kỳ cấu hình nào khác. Bạn
+có thể gặp phải tình trạng thiếu hỗ trợ cho các nền tảng khác, nhưng vui lòng
+góp phần thu hẹp khoảng cách.
 
-## Getting started
+## Bắt đầu
 
-### Dev Container
+### Vùng chứa nhà phát triển
 
-For development and running the examples, we recommend using the
-[Devcontainer](https://code.visualstudio.com/docs/remote/containers) template
-provided at `.devcontainer/devcontainer.json`. If you decide not to use the
-Devcontainer, refer to the `devcontainer.json` for a list of the plugins/tools
-we use.
+Để phát triển và chạy các ví dụ, chúng tôi khuyên bạn nên sử dụng
+Mẫu [Devcontainer](https://code.visualstudio.com/docs/remote/containers)
+được cung cấp tại `.devcontainer/devcontainer.json`. Nếu bạn quyết định không sử dụng
+Devcontainer, hãy tham khảo `devcontainer.json` để biết danh sách các plugin/công cụ
+chúng tôi sử dụng.
 
-> Note: If you use Devcontainers and you are running on Windows, make sure to check out the
-> repository on the WSL2 file system in the target distribution you're using.
+> Lưu ý: Nếu bạn sử dụng Devcontainers và bạn đang chạy trên Windows, hãy đảm bảo kiểm tra
+> kho lưu trữ trên hệ thống tệp WSL2 trong bản phân phối đích mà bạn đang sử dụng.
 
-### Build all binaries and run tests
+### Xây dựng tất cả các tệp nhị phân và chạy thử nghiệm
 
 ```bash
-cargo build --workspace
-cargo test --workspace
+xây dựng hàng hóa --workspace
+kiểm tra hàng hóa --workspace
 ```
 
-### Using Podman instead of Docker
+### Sử dụng Podman thay vì Docker
 
-If you want to use Podman you have to [enable Podman in Visual Studio
-Code][vscode-podman] and update the `.devcontainer/devcontainer.json` file
-with the following additions:
+Nếu bạn muốn sử dụng Podman, bạn phải [kích hoạt Podman trong Visual Studio
+Code][vscode-podman] và cập nhật tệp `.devcontainer/devcontainer.json`
+với những bổ sung sau:
 
-  [vscode-podman]: https://code.visualstudio.com/remote/advancedcontainers/docker-options#_podman
+   [vscode-podman]: https://code.visualstudio.com/remote/advancedcontainers/docker-options#_podman
 
-```jsonc
+```json
+c
 {
-  // ...
-  "runArgs": [
-    "--cap-add=SYS_PTRACE",
-    "--security-opt",
-    "seccomp=unconfined",
-    "--userns=keep-id"
-  ],
-  // ...
-  "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,Z",
-  "workspaceFolder": "/workspace",
-  "containerUser": "vscode",
-  // ...
+   //...
+   "runArgs": [
+     "--cap-add=SYS_PTRACE",
+     "--bảo mật-opt",
+     "seccomp=không giới hạn",
+     "--userns=keep-id"
+   ],
+   //...
+   "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,Z",
+   "workspaceFolder": "/workspace",
+   "containerUser": "vscode",
+   //...
 }
 ```
 
-> **NOTE**: Feel free to use another workspace folder name.
+> **LƯU Ý**: Vui lòng sử dụng tên thư mục không gian làm việc khác.
 
-## How to run the examples and interact with Chariott
+## Cách chạy ví dụ và tương tác với Chariott
 
-As Chariott's out of the box communication protocol is gRPC, the interaction with the
-examples is done through gRPC. To illustrate how to invoke the gRPC methods we
-use the [grpcurl](https://github.com/fullstorydev/grpcurl) command line tool with the example application
-**kv-app**. The **kv-app** is a key-value store that can be used to store
-and read state. The state is stored in memory and is not persisted. It also demonstrates
-the use of the `ess` and `keyvalue` crates.
+Vì giao thức truyền thông vượt trội của Chariott là gRPC, nên sự tương tác với
+các ví dụ được thực hiện thông qua gRPC. Để minh họa cách gọi các phương thức gRPC, chúng tôi
+sử dụng công cụ dòng lệnh [grpcurl](https://github.com/fullstorydev/grpcurl) với ứng dụng ví dụ
+**kv-ứng dụng**. **kv-app** là kho lưu trữ khóa-giá trị có thể được sử dụng để lưu trữ
+và đọc trạng thái. Trạng thái được lưu trữ trong bộ nhớ và không được duy trì. Nó cũng thể hiện
+việc sử dụng các thùng `ess` và `keyvalue`.
 
-This walkthrough is described in the [examples kv-app README](examples/applications/kv-app/README.md).
+Hướng dẫn này được mô tả trong [ví dụ kv-app README](examples/applications/kv-app/README.md).
 
-## How to run the dog mode demo
+## Cách chạy bản demo chế độ chó
 
-To run the dog mode demo, please refer to the [dog mode demo](./examples/applications/README.md).
+Để chạy demo chế độ chó, vui lòng tham khảo [bản demo chế độ chó](./examples/applications/README.md).
 
-## Trademarks
+## Nhãn hiệu
 
-This project may contain trademarks or logos for projects, products, or services. Authorized use of Microsoft
-trademarks or logos is subject to and must follow
-[Microsoft's Trademark & Brand Guidelines](https://www.microsoft.com/legal/intellectualproperty/trademarks/usage/general).
-Use of Microsoft trademarks or logos in modified versions of this project must not cause confusion or imply Microsoft sponsorship.
-Any use of third-party trademarks or logos are subject to those third-party's policies.
+Dự án này có thể chứa các nhãn hiệu hoặc biểu tượng cho các dự án, sản phẩm hoặc dịch vụ. Sử dụng được ủy quyền của Microsoft
+nhãn hiệu hoặc logo phải tuân theo và phải tuân theo
+[Nguyên tắc nhãn hiệu và thương hiệu của Microsoft](https://www.microsoft.com/legal/intellectualproperty/trademarks/usage/general).
+Việc sử dụng nhãn hiệu hoặc logo của Microsoft trong các phiên bản sửa đổi của dự án này không được gây nhầm lẫn hoặc ngụ ý tài trợ của Microsoft.
+Bất kỳ việc sử dụng nhãn hiệu hoặc biểu trưng của bên thứ ba nào đều phải tuân theo các chính sách của bên thứ ba đó.

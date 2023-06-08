@@ -108,8 +108,7 @@ với những bổ sung sau:
 
    [vscode-podman]: https://code.visualstudio.com/remote/advancedcontainers/docker-options#_podman
 
-```json
-c
+```jsonc
 {
    //...
    "runArgs": [
